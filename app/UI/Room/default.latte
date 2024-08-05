@@ -1,0 +1,62 @@
+{block content}
+<h1 n:block=title>{$room->name}</h1>
+<a n:href="Home:"> << Back</a>
+<div id='calendar'></div>
+{block scripts}
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+    <script>
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'timeGridDay',
+                selectable: true,
+                events: {$events},
+                eventClick: function (info) {
+                    let eventObj = info.event;
+                    let r = confirm('Zrusit rezervaci ID ' + eventObj.id + '?');
+                    if (r) {
+                        const data = new FormData();
+                        data.append('event_id', eventObj.id);
+
+                        fetch({plink Room:unbook}, {
+                            method: 'POST',
+                            body: data
+                        })
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error('response was not ok ' + response.statusText);
+                                }
+                                location.reload();
+                            })
+                    }
+
+                },
+                select: function (info) {
+                    let r = confirm('Zamluvit? ' + info.startStr + ' to ' + info.endStr);
+                    if (r) {
+                        const data = new FormData();
+                        data.append('start', info.startStr);
+                        data.append('end', info.endStr);
+                        data.append('room', {$presenter->getParameter('id')});
+
+                        fetch({plink Room:book}, {
+                            method: 'POST',
+                            body: data
+                        })
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error('response not ok ' + response.statusText);
+                                }
+                                location.reload();
+                            })
+                    }
+                }
+            });
+            calendar.render();
+        });
+
+    </script>
+{/block}
+
+

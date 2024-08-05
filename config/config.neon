@@ -1,0 +1,53 @@
+parameters:
+
+
+application:
+	errorPresenter:
+		4xx: Error:Error4xx
+		5xx: Error:Error5xx
+	mapping: App\UI\*\**Presenter
+
+latte:
+	strictTypes: yes
+	strictParsing: yes
+	extensions:
+		- App\UI\Accessory\LatteExtension
+
+
+di:
+	export:
+		parameters: no
+		tags: no
+
+search:
+	-	in: %appDir%
+		classes:
+			- *Factory
+
+extensions:
+    nextras.dbal: Nextras\Dbal\Bridges\NetteDI\DbalExtension
+    nextras.orm: Nextras\Orm\Bridges\NetteDI\OrmExtension
+
+nextras.orm:
+    repositoryFinder: Nextras\Orm\Bridges\NetteDI\DIRepositoryFinder
+
+nextras.dbal:
+    driver: mysqli
+    host: localhost
+    port: 3306
+    database: im
+    username: root
+    password:
+    connectionTz: Europe/Prague
+
+services:
+    - App\Core\RouterFactory::createRouter
+
+    - App\Security\UserRepository(App\Security\UserMapper(cache: @nextras.orm.cache))
+    - App\MeetingRooms\RoomRepository(App\MeetingRooms\RoomMapper(cache: @nextras.orm.cache))
+    - App\MeetingRooms\BookingRepository(App\MeetingRooms\BookingMapper(cache: @nextras.orm.cache))
+
+    - App\Security\SecurityService
+    - App\MeetingRooms\RoomService
+
+    - App\Security\Bouncer
